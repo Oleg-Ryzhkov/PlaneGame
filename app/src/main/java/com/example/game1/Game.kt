@@ -1,16 +1,21 @@
 package com.example.game1
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.translationMatrix
 
 class Game : AppCompatActivity() {
+    @SuppressLint("ClickableViewAccessibility", "CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
@@ -21,11 +26,9 @@ class Game : AppCompatActivity() {
         val coin2 = findViewById<ImageView>(R.id.coin2)
         val rok2 = findViewById<ImageView>(R.id.rok2)
         val textscore = findViewById<TextView>(R.id.score)
-        val right = findViewById<ImageView>(R.id.right)
-        val left = findViewById<ImageView>(R.id.left)
+
         var schet = 0
         val textresult = "Score: "
-        var stop = 0
 
 
         val position = arrayOf(-400, -200, 0, 200, 400)
@@ -43,7 +46,6 @@ class Game : AppCompatActivity() {
         }
 
         fun coinlounch() {
-            coin.animate().alpha(1f)
             coin.animate().translationY(-1000f).translationX(position[1].toFloat()).setDuration(0)
                 .withEndAction() {
                     coin.animate().translationYBy(3000f).setDuration(5000).withEndAction() {
@@ -53,7 +55,6 @@ class Game : AppCompatActivity() {
                 }
         }
         fun coinlounch2() {
-            coin2.animate().alpha(1f)
             coin2.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
                 .withEndAction() {
                     coin2.animate().translationYBy(3000f).setDuration(5000).withEndAction() {
@@ -72,7 +73,6 @@ class Game : AppCompatActivity() {
 
                 }
         }
-
         coin2.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
         rok2.animate().translationY(-800f).translationX(position[3].toFloat()).setDuration(0)
         Handler().postDelayed({
@@ -84,36 +84,20 @@ class Game : AppCompatActivity() {
         roklounch()
         coinlounch()
 
+            val listener = View.OnTouchListener(function = { view, motionEvent ->
 
+                if (motionEvent.action == MotionEvent.ACTION_MOVE) {
 
-        left.setOnClickListener() {
-            left.setClickable(false)
-            right.setClickable(false)
-            plane.animate().translationXBy(-200f).setDuration(500).withEndAction() {
-                if (plane.translationX <= -350f)
-
-                {
-                    left.setClickable(false)
+                    view.y = motionEvent.rawY - view.height/2
+                    view.x = motionEvent.rawX - view.width/2
                 }
-                else
-                left.setClickable(true)
-                right.setClickable(true)
-            }
-        }
-        right.setOnClickListener() {
-            right.setClickable(false)
-            left.setClickable(false)
-            plane.animate().translationXBy(200f).setDuration(500).withEndAction() {
-                if (plane.translationX >= 350f)
 
-                {
-                    right.setClickable(false)
-                }
-                else
-                right.setClickable(true)
-                left.setClickable(true)
-            }
-        }
+                true
+
+            })
+            plane.setOnTouchListener(listener)
+
+
 
 
         val intent = Intent(this, Result::class.java)
@@ -143,58 +127,36 @@ class Game : AppCompatActivity() {
 
 
                 fun logic() {
-                if (Rect.intersects(planerect, rokrect)) {
+                if (Rect.intersects(planerect, rokrect) || Rect.intersects(planerect, rokrect2)) {
                     intent.putExtra("int", "" + schet);
-                    rok.animate().alpha(0f).setDuration(0)
-                    rok2.animate().alpha(0f).setDuration(0)
-                    coin.animate().alpha(0f).setDuration(0)
-                    coin2.animate().alpha(0f).setDuration(0)
                     plane.setImageResource(R.drawable.bah)
                     coin.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
+                    rok.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
+                    rok2.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
                     coin2.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
-                    stop = 1
                     Handler().postDelayed({
                         finish()
                         startActivity(intent)
                     },2000)
 
                 }
-                    if (Rect.intersects(planerect, rokrect2)) {
-                        intent.putExtra("int", "" + schet)
-                        rok.animate().alpha(0f).setDuration(0)
-                        rok2.animate().alpha(0f).setDuration(0)
-                        coin.animate().alpha(0f).setDuration(0)
-                        coin2.animate().alpha(0f).setDuration(0)
-                        plane.setImageResource(R.drawable.bah)
-                        coin.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
-                        coin2.animate().translationY(-1000f).translationX(position[2].toFloat()).setDuration(0)
-                        stop = 1
-                        Handler().postDelayed({
-                            finish()
-                            startActivity(intent)
-                        },2000)
 
-                    }
 
                 if (Rect.intersects(planerect, coinrect)) {
+                    coinlounch()
                     schet ++
                     textscore.text = textresult + schet
-                    coin.animate().alpha(0f).setDuration(0)
 
                 }
                     if (Rect.intersects(planerect, coinrect2)) {
+                        coinlounch2()
                         schet ++
                         textscore.text = textresult + schet
-                        coin2.animate().alpha(0f).setDuration(0)
 
                     }
             }
                 logic()
-                if (stop == 1){
-                    left.setClickable(false)
-                    right.setClickable(false)
-                }
-            handler.postDelayed(this::run, 500)
+            handler.postDelayed(this::run, 50)
 
         }
         })
